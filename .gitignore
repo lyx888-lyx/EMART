@@ -37,3 +37,6 @@ finetune/
 .venv
 env/
 venv/
+
+# Local outputs from diagnostic experiments
+research_outputs/

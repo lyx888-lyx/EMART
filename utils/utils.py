@@ -265,7 +265,7 @@ class BarlowTwinsLoss(nn.Module):
         return loss
 
 
-def plutchik_contrastive_loss_instance(label_inputs, pred, weak_pos=0.2, tau=0.5, dataset='iemocap6', mode='supcon'):
+def plutchik_contrastive_loss_instance(label_inputs, pred, weak_pos=0.2, tau=0.5, dataset='iemocap6', mode='supcon', neutral_pair_policy='original'):
     b_size = label_inputs.size(0)
     eps = 1e-6
 
@@ -291,7 +291,16 @@ def plutchik_contrastive_loss_instance(label_inputs, pred, weak_pos=0.2, tau=0.5
     target_is_neutral = (label_inputs == neutral_label).unsqueeze(0)             
     weak_pos_mask = (anchor_is_neutral | target_is_neutral) & (~pos_mask) & (~eye)  
     strong_pos_mask = pos_mask                                                     
-    neg_mask = (~strong_pos_mask) & (~weak_pos_mask) & (~eye)                      
+    if neutral_pair_policy not in ('original', 'ignore'):
+        raise ValueError("neutral_pair_policy must be 'original' or 'ignore'")
+    if neutral_pair_policy == 'ignore':
+        # Remove cross-class neutral pairs entirely; do not turn them into negatives.
+        # Same-class neutral/neutral pairs remain ordinary strong positives.
+        excluded = weak_pos_mask
+        weak_pos_mask = torch.zeros_like(weak_pos_mask)
+        neg_mask = (~strong_pos_mask) & (~excluded) & (~eye)
+    else:
+        neg_mask = (~strong_pos_mask) & (~weak_pos_mask) & (~eye)                      
 
     if mode == "supcon":
         # positive

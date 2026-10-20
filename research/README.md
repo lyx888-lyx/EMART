@@ -20,6 +20,7 @@ python research/diagnose_predictions.py --dataset iemocap6 \
 
 Each run writes summary.json, per_class.csv, confusion_counts.csv,
 confusion_row_normalized.csv, error_flows.csv, false_neutral.csv.
+All computed metrics and ratios are on a 0-1 scale (e.g. 0.667 = 66.7%).
 Historical mm_test prediction CSVs lack probability fields; this step cannot
 compute calibration or uncertainty from those files. Treat existing test
 results as descriptive exploration, not a basis for tuning new hyperparameters.

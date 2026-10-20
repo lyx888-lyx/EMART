@@ -127,8 +127,8 @@ class EmotionDatasetGenerator(Dataset):
         self.load_pt                = load_pt
 
         self.transform = Compose([
-            AddGaussianSNR(min_snr_in_db=10.0, max_snr_in_db=30.0, p=1.0),
-            TimeMask(min_band_part=0.1, max_band_part=0.15, fade=True, p=1.0)
+            AddGaussianSNR(min_snr_db=10.0, max_snr_db=30.0, p=1.0),
+            TimeMask(min_band_part=0.1, max_band_part=0.15, fade_duration=0.01, p=1.0)
         ])
         
         if self.load_pt:

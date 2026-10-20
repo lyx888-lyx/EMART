@@ -1,0 +1,128 @@
+{
+  "dataset": "meld7",
+  "fold": 1,
+  "total_samples": 2610,
+  "valid_samples": 2610,
+  "acc": 49.157088122605366,
+  "mf1": 46.727828133507,
+  "uar": 27.80514480086777,
+  "accuracy": 49.157088122605366,
+  "correct": 1283,
+  "incorrect": 1327,
+  "per_class_accuracy": {
+    "neutral": {
+      "accuracy": 70.54140127388536,
+      "correct": 886,
+      "total": 1256
+    },
+    "sadness": {
+      "accuracy": 15.384615384615385,
+      "correct": 32,
+      "total": 208
+    },
+    "anger": {
+      "accuracy": 42.89855072463768,
+      "correct": 148,
+      "total": 345
+    },
+    "joy": {
+      "accuracy": 40.547263681592035,
+      "correct": 163,
+      "total": 402
+    },
+    "surprise": {
+      "accuracy": 17.793594306049823,
+      "correct": 50,
+      "total": 281
+    },
+    "fear": {
+      "accuracy": 6.0,
+      "correct": 3,
+      "total": 50
+    },
+    "disgust": {
+      "accuracy": 1.4705882352941175,
+      "correct": 1,
+      "total": 68
+    }
+  },
+  "per_class_metrics": {
+    "neutral": {
+      "accuracy": 70.54140127388536,
+      "precision": 59.66329966329966,
+      "recall": 70.54140127388536,
+      "f1": 64.64793870850056,
+      "correct": 886,
+      "total": 1256,
+      "tp": 886,
+      "fp": 599,
+      "fn": 370
+    },
+    "sadness": {
+      "accuracy": 15.384615384615385,
+      "precision": 23.52941176470588,
+      "recall": 15.384615384615385,
+      "f1": 18.6046511627907,
+      "correct": 32,
+      "total": 208,
+      "tp": 32,
+      "fp": 104,
+      "fn": 176
+    },
+    "anger": {
+      "accuracy": 42.89855072463768,
+      "precision": 37.185929648241206,
+      "recall": 42.89855072463768,
+      "f1": 39.838492597577385,
+      "correct": 148,
+      "total": 345,
+      "tp": 148,
+      "fp": 250,
+      "fn": 197
+    },
+    "joy": {
+      "accuracy": 40.547263681592035,
+      "precision": 39.08872901678657,
+      "recall": 40.547263681592035,
+      "f1": 39.80463980463981,
+      "correct": 163,
+      "total": 402,
+      "tp": 163,
+      "fp": 254,
+      "fn": 239
+    },
+    "surprise": {
+      "accuracy": 17.793594306049823,
+      "precision": 33.557046979865774,
+      "recall": 17.793594306049823,
+      "f1": 23.25581395348837,
+      "correct": 50,
+      "total": 281,
+      "tp": 50,
+      "fp": 99,
+      "fn": 231
+    },
+    "fear": {
+      "accuracy": 6.0,
+      "precision": 14.285714285714285,
+      "recall": 6.0,
+      "f1": 8.450704225352112,
+      "correct": 3,
+      "total": 50,
+      "tp": 3,
+      "fp": 18,
+      "fn": 47
+    },
+    "disgust": {
+      "accuracy": 1.4705882352941175,
+      "precision": 25.0,
+      "recall": 1.4705882352941175,
+      "f1": 2.7777777777777777,
+      "correct": 1,
+      "total": 68,
+      "tp": 1,
+      "fp": 3,
+      "fn": 67
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "samples": 1623,
+  "accuracy": 70.54836722119532,
+  "weighted_f1": 70.68224980018819,
+  "macro_f1": 69.74468449521706,
+  "checkpoint": "/code/EMART/finetune/iemocap6/multimodal/pretrained/iemocap_fold_1.pt"
+}

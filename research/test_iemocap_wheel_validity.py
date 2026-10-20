@@ -90,7 +90,7 @@ class WheelGeometryTests(unittest.TestCase):
         rows = [
             make_vad_row("a", "dev", "hap", 1, 1),
             make_vad_row("b", "dev", "hap", 5, 5),
-            make_vad_row("c", "dev", "sad", 1.1, 1.1),
+            make_vad_row("c", "dev", "sad", 1, 1),
         ]
         out = wheel.same_vs_cross_class_audit(
             rows, ("valence", "activation"), seed=11, draws_per_relation=30)

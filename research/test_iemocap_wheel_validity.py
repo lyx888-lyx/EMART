@@ -40,6 +40,21 @@ class WheelGeometryTests(unittest.TestCase):
         self.assertIsNone(wheel.sample_prior_inversion(
             anchor, near_prior, near_prior, ("valence", "activation")))
 
+    def test_real_split_string_labels_and_integer_labels(self):
+        self.assertEqual(wheel.parse_emotion_label("neu", "item"), 0)
+        self.assertEqual(wheel.parse_emotion_label("fru", "item"), 2)
+        self.assertEqual(wheel.parse_emotion_label("ang", "item"), 3)
+        self.assertEqual(wheel.parse_emotion_label("hap", "item"), 4)
+        self.assertEqual(wheel.parse_emotion_label("exc", "item"), 5)
+        self.assertEqual(wheel.parse_emotion_label("sad", "item"), 1)
+        self.assertEqual(wheel.parse_emotion_label("happy", "item"), 4)
+        self.assertEqual(wheel.parse_emotion_label(4, "item"), 4)
+        self.assertEqual(wheel.parse_emotion_label("4", "item"), 4)
+        with self.assertRaises(ValueError):
+            wheel.parse_emotion_label("xxx", "item")
+        with self.assertRaises(ValueError):
+            wheel.parse_emotion_label(True, "item")
+
     def test_parse_original_annotations_and_join_splits(self):
         with tempfile.TemporaryDirectory() as directory:
             tmp = Path(directory)
@@ -64,7 +79,8 @@ class WheelGeometryTests(unittest.TestCase):
             split = {"train": [], "dev": [], "test": []}
             for i, (instance, category, idx, v, a, d) in enumerate(entries):
                 which = "train" if i < 6 else ("dev" if i == 6 else "test")
-                split[which].append([instance, "speaker", "file", "audio", "text", idx])
+                label_value = category if i % 2 == 0 else idx
+                split[which].append([instance, "speaker", "file", "audio", "text", label_value])
             split_path = tmp / "split.json"
             split_path.write_text(json.dumps(split), encoding="utf-8")
             output = tmp / "result/manifest.csv"

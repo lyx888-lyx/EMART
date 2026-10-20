@@ -27,7 +27,11 @@ These text files contain an utterance ID, discrete emotion label, and the origin
 Locate them before running:
 
 ```bash
-find ../dataset/IEMOCAP_full_release -type d -name EmoEvaluation
+# Both dataset and IEMOCAP_full_release may be symlinks.
+find -L ../dataset/IEMOCAP_full_release -type d -name EmoEvaluation
+
+# Check where the symlink resolves:
+readlink -f ../dataset/IEMOCAP_full_release
 ```
 
 If the directory is elsewhere, supply `--iemocap-root /actual/path/IEMOCAP_full_release`.
@@ -60,7 +64,7 @@ Outputs:
 - `missing_vad.csv`: utterances absent from original ratings.
 - `label_mismatches.csv`: discrete labels incompatible with the current split, excluded from the analysis rather than silently used.
 
-The command exits nonzero when any split has below 80% coverage (changeable with `--min-coverage`, but lowering this threshold requires a research justification). A nonzero exit may still leave diagnostic files for you to inspect.
+The split JSON may encode the final emotion field as a category code like neu/sad/fru/ang/hap/exc rather than an integer; the parser supports both formats.\n\nThe command exits nonzero when any split has below 80% coverage (changeable with `--min-coverage`, but lowering this threshold requires a research justification). A nonzero exit may still leave diagnostic files for you to inspect.
 
 ## 3. Analyze DEV first: independent VA geometry without prediction labels
 

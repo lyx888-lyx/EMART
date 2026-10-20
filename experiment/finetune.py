@@ -1,4 +1,5 @@
 import json
+import csv
 import yaml
 import torch
 import random
@@ -223,6 +224,8 @@ def validate_epoch(
     barlow_twins = BarlowTwinsLoss(batch_size=args.batch_size, dim=256, device=device)
 
     eval_metric = EvalMetric()
+    research_rows = []
+    research_offset = 0
     with torch.no_grad():
         for batch_idx, batch_data in enumerate(dataloader):
             
@@ -245,6 +248,20 @@ def validate_epoch(
                 angle_instance_loss = None
 
             eval_metric.append_classification_results(y, outputs, loss, p_loss, angle_instance_loss)
+            if args.research_export_predictions:
+                # Eval DataLoader has shuffle=False; ids follow the dataset order.
+                probabilities = torch.softmax(outputs.detach(), dim=-1).cpu().tolist()
+                truths = y.detach().cpu().tolist()
+                items = dataloader.dataset.data_list[research_offset:research_offset + len(truths)]
+                if len(items) != len(truths):
+                    raise RuntimeError("Research export: dataloader sample count mismatch")
+                for item, truth, probs in zip(items, truths, probabilities):
+                    prediction = int(max(range(len(probs)), key=probs.__getitem__))
+                    row = {"instance": item[0], "ground_truth_idx": int(truth),
+                           "pred_idx": prediction}
+                    row.update({f"prob_{idx}": prob for idx, prob in enumerate(probs)})
+                    research_rows.append(row)
+                research_offset += len(truths)
         
             if (batch_idx % 50 == 0 and batch_idx != 0) or batch_idx == len(dataloader) - 1:
                 result_dict = eval_metric.classification_summary()
@@ -260,6 +277,8 @@ def validate_epoch(
                 
     logging.info(f'-------------------------------------------------------------------')
     result_dict = eval_metric.classification_summary()
+    if args.research_export_predictions:
+        result_dict['research_rows'] = research_rows
     if wandb_store:
         if args.pooling_mode  == 'weighted_pool':
             wandb.log({
@@ -529,6 +548,20 @@ if __name__ == '__main__':
                 best_test_report = test_result["report"]
                 
                 best_epoch = epoch
+                if args.research_export_predictions:
+                    export_dir = log_dir / "research_predictions" / args.exp_dir
+                    export_dir.mkdir(parents=True, exist_ok=True)
+                    for split_name, split_result in (("dev", dev_result), ("test", test_result)):
+                        rows = split_result["research_rows"]
+                        columns = ["instance", "ground_truth_idx", "pred_idx"] + [
+                            f"prob_{idx}" for idx in range(num_class)
+                        ]
+                        out_csv = export_dir / f"{split_name}_fold_{fold_idx}.csv"
+                        with out_csv.open("w", newline="", encoding="utf-8") as handle:
+                            writer = csv.DictWriter(handle, fieldnames=columns)
+                            writer.writeheader()
+                            writer.writerows(rows)
+                    logging.info(f"Research predictions saved under {export_dir}")
                 torch.save(model.state_dict(), str(log_dir.joinpath(f'{args.exp_dir}_fold_{fold_idx}.pt')))
                 
                 if args.modal in ['multimodal', 'multimodal_concat']: 

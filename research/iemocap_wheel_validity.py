@@ -105,7 +105,10 @@ def read_annotation_files(root):
     if not paths:
         raise FileNotFoundError(
             "Cannot find IEMOCAP dimensional annotations beneath "
-            f"{root}. Expected Session*/dialog/EmoEvaluation/*.txt. "
+            f"{root} (resolved path: {root.resolve()}). Expected "
+            "Session*/dialog/EmoEvaluation/*.txt. "
+            "Note: 'find' does not follow symlinked directories by default; "
+            "try 'find -L ../dataset/IEMOCAP_full_release -type d -name EmoEvaluation'. "
             "If you have a separately exported VAD table, pass --vad-csv PATH."
         )
     records = {}
@@ -164,6 +167,40 @@ def read_vad_csv(path):
                      "annotation_mode": "csv"}
 
 
+def parse_emotion_label(value, sample_id):
+    """Handle the six IEMOCAP label codes or their numeric indices.
+
+    The project split JSON stores strings such as 'neu', while some alternative
+    preprocessors store integer class IDs. Reject anything else explicitly.
+    """
+    aliases = {
+        "neutral": "neu", "neu": "neu",
+        "sad": "sad", "sadness": "sad",
+        "frustrated": "fru", "frustration": "fru", "fru": "fru",
+        "angry": "ang", "anger": "ang", "ang": "ang",
+        "happy": "hap", "happiness": "hap", "hap": "hap",
+        "excited": "exc", "excitement": "exc", "exc": "exc",
+    }
+    if isinstance(value, bool):
+        raise ValueError(f"Invalid boolean emotion label for {sample_id}: {value!r}")
+    if isinstance(value, int):
+        if 0 <= value < len(LABELS):
+            return value
+    elif isinstance(value, str):
+        key = value.strip().lower()
+        label = aliases.get(key)
+        if label is not None:
+            return LABELS.index(label)
+        if key.isdecimal():
+            index = int(key)
+            if 0 <= index < len(LABELS):
+                return index
+    raise ValueError(
+        f"Unknown IEMOCAP6 emotion label {value!r} in split JSON for {sample_id}; "
+        "expected neu/sad/fru/ang/hap/exc or integer 0..5."
+    )
+
+
 def split_records(path):
     raw = load_json(path)
     records, duplicates = {}, []
@@ -177,9 +214,7 @@ def split_records(path):
             if not isinstance(sample, (list, tuple)) or len(sample) < 2:
                 raise ValueError(f"Unexpected split row: {sample}")
             sample_id = str(sample[0])
-            index = int(sample[-1])
-            if index < 0 or index >= len(LABELS):
-                raise ValueError(f"Unexpected IEMOCAP6 label index {index}: {sample_id}")
+            index = parse_emotion_label(sample[-1], sample_id)
             if sample_id in records:
                 duplicates.append(sample_id)
                 continue

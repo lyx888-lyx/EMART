@@ -391,6 +391,47 @@ def triplet_audit(rows, dims, seed, attempts_per_anchor):
                                                  " instances sampled within category, fixed RNG"}
 
 
+def same_vs_cross_class_audit(rows, dims, seed, draws_per_relation):
+    """How often is another category closer in VA(D) than another member of the same class?
+
+    Draw same- and different-class samples for each anchor category and each
+    other category independently, to reduce confounding by label prevalence.
+    """
+    rng = random.Random(seed)
+    grouped = defaultdict(list)
+    for row in rows:
+        if row["emotion"] in ANGLES:
+            grouped[row["emotion"]].append(row)
+    output = []
+    for own_class in ANGLES:
+        own = grouped[own_class]
+        if len(own) < 2:
+            continue
+        for other_class in ANGLES:
+            if other_class == own_class or not grouped[other_class]:
+                continue
+            overlaps = 0
+            within = []
+            across = []
+            for _ in range(draws_per_relation):
+                anchor, positive = rng.sample(own, 2)
+                negative = rng.choice(grouped[other_class])
+                d_within = distance(anchor, positive, dims)
+                d_across = distance(anchor, negative, dims)
+                within.append(d_within)
+                across.append(d_across)
+                overlaps += int(d_within > d_across)
+            output.append({
+                "anchor_class": own_class, "other_class": other_class,
+                "angle_distance_degrees": math.degrees(angle_distance(own_class, other_class)),
+                "n_draws": draws_per_relation,
+                "cross_class_closer_than_same_rate": overlaps / draws_per_relation,
+                "mean_same_class_distance": mean(within),
+                "mean_cross_class_distance": mean(across),
+            })
+    return output
+
+
 def mismatch_bin(value):
     if value is None:
         return "undefined"
@@ -457,6 +498,12 @@ def analyze(args):
     write_rows(output / "triplet_per_anchor.csv", triplets,
                ["instance", "emotion", "n_triplets", "n_inversions", "triplet_inversion_rate"])
 
+    same_cross = same_vs_cross_class_audit(study, dims, args.seed + 1, args.same_cross_draws)
+    write_rows(output / "same_vs_cross_class.csv", same_cross,
+               ["anchor_class", "other_class", "angle_distance_degrees", "n_draws",
+                "cross_class_closer_than_same_rate", "mean_same_class_distance",
+                "mean_cross_class_distance"])
+
     grouped = defaultdict(list)
     for row in joined:
         grouped[(row["emotion"], row["mismatch_bin"])].append(row)
@@ -495,6 +542,7 @@ def analyze(args):
         "class_pair_count": len(geometry_pairs),
         "class_pair_spearman_rho_descriptive": rho,
         "triplet": triplet_stats,
+        "same_vs_cross_class_relation_count": len(same_cross),
         "mean_instance_prior_inversion": mean([r["prior_inversion_rate"] for r in joined
                                               if r["prior_inversion_rate"] is not None]),
         "mean_prior_inversion_wrong_predictions": mean(mismatch_wrong),
@@ -537,6 +585,7 @@ def main():
                         help="Optional CSV with instance/ground_truth/prediction columns; must match chosen split")
     second.add_argument("--attempts-per-anchor", type=int, default=30)
     second.add_argument("--seed", type=int, default=42)
+    second.add_argument("--same-cross-draws", type=int, default=1000)
     second.add_argument("--top-examples", type=int, default=60)
     second.add_argument("--output", type=Path, default=Path("research_outputs/iemocap_wheel/dev_audit"))
     second.set_defaults(func=analyze)
@@ -544,6 +593,8 @@ def main():
     args = parser.parse_args()
     if args.command == "analyze" and args.attempts_per_anchor < 1:
         parser.error("--attempts-per-anchor must be positive")
+    if args.command == "analyze" and args.same_cross_draws < 1:
+        parser.error("--same-cross-draws must be positive")
     args.func(args)
 
 

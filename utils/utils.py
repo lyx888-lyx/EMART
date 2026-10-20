@@ -823,6 +823,13 @@ def parse_finetune_args():
         help='weak pos in plutchik contrastive loss'
     )
     parser.add_argument(
+        '--neutral_pair_policy',
+        type=str,
+        choices=['original', 'ignore'],
+        default='original',
+        help="original: keep weak-positive cross-neutral pairs; ignore: omit these pairs from emotion loss"
+    )
+    parser.add_argument(
         '--plutchik_align',
         default=False,
         type=str2bool,

@@ -994,6 +994,11 @@ def parse_finetune_args():
     )
     
     parser.add_argument(
+        '--research_export_predictions',
+        action='store_true',
+        help='Save per-instance predictions for best validation epoch; diagnostics only'
+    )
+    parser.add_argument(
         '--seed', 
         type=int, 
         default=-1

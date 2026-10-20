@@ -276,14 +276,14 @@ def centroids(rows):
         grouped[row["emotion"]].append(row)
     output = {}
     for category, members in grouped.items():
-        output[category] = {
-            "label": category, "n": len(members),
-            **{dim: mean([r[dim] for r in members])
-               for dim in ("valence", "activation", "dominance")},
-            **{dim + "_sd": math.sqrt(mean([(r[dim] -
-                   mean([x[dim] for x in members])) ** 2 for r in members]))
-               for dim in ("valence", "activation", "dominance")}
+        dimensions = ("valence", "activation", "dominance")
+        center = {dim: mean([r[dim] for r in members]) for dim in dimensions}
+        dispersion = {
+            dim + "_sd": math.sqrt(mean([(r[dim] - center[dim]) ** 2 for r in members]))
+            for dim in dimensions
         }
+        output[category] = {"label": category, "n": len(members),
+                            **center, **dispersion}
     return output
 
 

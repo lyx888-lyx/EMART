@@ -112,7 +112,7 @@ def train_epoch(
             p_loss = None
 
         if plutchik_instance_match:
-            angle_instance_loss = plutchik_contrastive_loss_instance(y, fuse_feat, args.weak_pos, dataset=args.dataset, mode=args.ssl_mode)
+            angle_instance_loss = plutchik_contrastive_loss_instance(y, fuse_feat, args.weak_pos, dataset=args.dataset, mode=args.ssl_mode, neutral_pair_policy=args.neutral_pair_policy)
             loss += args.plutchik_instance_coeff * angle_instance_loss
         else:
             angle_instance_loss = None
@@ -239,7 +239,7 @@ def validate_epoch(
             else:
                 p_loss = None
             if plutchik_instance_match:
-                angle_instance_loss = plutchik_contrastive_loss_instance(y, fuse_feat, args.weak_pos, dataset=args.dataset, mode=args.ssl_mode)
+                angle_instance_loss = plutchik_contrastive_loss_instance(y, fuse_feat, args.weak_pos, dataset=args.dataset, mode=args.ssl_mode, neutral_pair_policy=args.neutral_pair_policy)
                 loss += args.plutchik_instance_coeff * angle_instance_loss
             else:
                 angle_instance_loss = None

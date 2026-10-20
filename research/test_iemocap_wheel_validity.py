@@ -76,7 +76,7 @@ class WheelGeometryTests(unittest.TestCase):
             self.assertEqual(wheel.load_json(tmp / "result/coverage.json")["missing_vad_count"], 0)
             audit = SimpleNamespace(
                 manifest=output, split="dev", dims="VA", predictions=None,
-                attempts_per_anchor=5, seed=7, top_examples=10,
+                attempts_per_anchor=5, same_cross_draws=10, seed=7, top_examples=10,
                 output=tmp / "audit")
             wheel.analyze(audit)
             summary = wheel.load_json(tmp / "audit/summary.json")
@@ -84,6 +84,19 @@ class WheelGeometryTests(unittest.TestCase):
             self.assertEqual(summary["study_samples_with_vad"], 1)
             self.assertEqual(summary["class_pair_count"], 10)
             self.assertTrue((tmp / "audit/class_pair_relationship.csv").is_file())
+
+
+    def test_within_class_can_be_farther_than_cross_class(self):
+        rows = [
+            make_vad_row("a", "dev", "hap", 1, 1),
+            make_vad_row("b", "dev", "hap", 5, 5),
+            make_vad_row("c", "dev", "sad", 1.1, 1.1),
+        ]
+        out = wheel.same_vs_cross_class_audit(
+            rows, ("valence", "activation"), seed=11, draws_per_relation=30)
+        chosen = next(r for r in out if r["anchor_class"] == "hap" and
+                      r["other_class"] == "sad")
+        self.assertTrue(0 < chosen["cross_class_closer_than_same_rate"] < 1)
 
     def test_predictions_match_split_labels(self):
         with tempfile.TemporaryDirectory() as directory:
